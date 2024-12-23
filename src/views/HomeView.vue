@@ -1,89 +1,41 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import FormModalPost from '@/components/post/FormModalPost.vue'
-import ItemPost from '@/components/post/ItemPost.vue'
-import { usePostDelete, usePostList } from '@/composables/post.api'
-import type { PostT } from '@/types/post.type'
-import { templateRef } from '@vueuse/core'
-import { useSessionClose } from '@/composables/session.api'
+import { ref } from 'vue'
+import Index from '@/components/post/Index.vue'
+import { useSessionCheck, useSessionCreate } from '@/composables/session.api'
+import ButtonSession from '@/components/ButtonSession.vue'
 
-const FormPost = templateRef<{
-  setEdit: (location: PostT) => void
-  setNew: () => void
-}>('form_post', null)
+const { isAuthenticated } = useSessionCheck()
+const loading = ref(false)
 
-const modal = ref(false)
-const loadingCard = ref(false)
-const filterText = ref('')
-
-const { data: posts } = usePostList()
-
-const onFormAdd = (post: PostT) => posts.value.push(post)
-const onFormUpdated = (_post: PostT) => {
-  const foundPost = posts.value.find((post) => post.id === _post.id)
-  if (foundPost) {
-    foundPost.title = _post.title
-    foundPost.content = _post.content
-  }
+const openSession = () => {
+  useSessionCreate(loading).then(() => (isAuthenticated.value = true))
 }
-
-const filterTable = computed(() => {
-  if (filterText.value.length) {
-    const text = filterText.value.toLowerCase()
-    const foundPost = posts.value.filter((el) => {
-      return el.title.toLowerCase().indexOf(text) > -1 || (el.content?.length && el.content.toLowerCase().indexOf(text) > -1)
-    })
-    return foundPost
-  } else {
-    return posts.value
-  }
-})
-
-//
-const onClickUEdit = (post: PostT) => {
-  modal.value = true
-  FormPost.value.setEdit(post)
-}
-
-const onDelete = async (id: number) => {
-  usePostDelete(id, loadingCard).then(() => {
-    const index = posts.value.findIndex((post) => post.id == id)
-    if (index > -1) posts.value.splice(index, 1)
-  })
-}
-const onSetNew = () => {
-  FormPost.value.setNew()
-  modal.value = true
-}
+const onCloseSession = () => (isAuthenticated.value = false)
 </script>
-
 <template>
-  <main>
-    <div class="is-flex is-justify-content-space-between">
-      <button @click="onSetNew" class="button is-link">+ Nuevo Post</button>
-      <button @click="useSessionClose" class="button is-white">Cerrar sesion</button>
+  <!--  -->
+  <template v-if="isAuthenticated">
+    <Index @close-session="onCloseSession" />
+  </template>
+  <!--  -->
+  <template v-else>
+    <div class="session-page">
+      <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="80" height="80" />
+      <ButtonSession @click="openSession" :label="loading ? 'Cargando...' : 'Inicia sesion'" :disabled="loading" />
+      <div class="has-text-centered">Se paciente porfavor, cuando el servidor esta en reposo y toma 10s aprox. en levantarse</div>
+      <div class="has-text-centered">Sesion libre por 30 mins</div>
     </div>
-
-    <div class="pt-5">
-      <label for="">Buscar posts</label>
-      <input v-model="filterText" class="input is-primary" type="text" placeholder="Buscador simple por titulo o contenido" />
-    </div>
-
-    <FormModalPost ref="form_post" v-model:open="modal" @added="onFormAdd" @updated="onFormUpdated" />
-
-    <div v-if="!posts.length">No hay items encontrados</div>
-    <template v-else>
-      <div class="is-flex py-5 my-5 is-gap-5">
-        <ItemPost
-          v-for="(post, index) in filterTable"
-          :key="index"
-          :post="post"
-          @delete="onDelete"
-          @update="onClickUEdit"
-          v-model:loading="loadingCard"
-        />
-      </div>
-    </template>
-  </main>
+  </template>
 </template>
-<style></style>
+
+<style>
+.session-page {
+  display: grid;
+  align-content: center;
+  height: 80vh;
+  gap: 2rem;
+}
+.logo {
+  margin: auto;
+}
+</style>

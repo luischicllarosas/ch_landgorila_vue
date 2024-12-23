@@ -33,7 +33,7 @@ api.interceptors.response.use(
     // Do something with response error
     if (error.response.status === 401 && !window.location.pathname.includes('session')) {
       Cookies.remove('token')
-      window.location.href = window.location.origin + '/session'
+      // window.location.href = window.location.origin + '/session'
     }
     return Promise.reject(error)
   }

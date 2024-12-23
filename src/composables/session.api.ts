@@ -1,8 +1,17 @@
 // fetch.js
-import { type Ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import api from '@/axiosInstance'
 import Cookies from 'js-cookie'
-import Router from '../router'
+// import Router from '../router'
+
+export function useSessionCheck() {
+  //
+  const isAuthenticated = ref<boolean>(false)
+  if (Cookies.get('token')) {
+    isAuthenticated.value = true
+  }
+  return { isAuthenticated }
+}
 
 export async function useSessionCreate(loading: Ref<boolean>) {
   try {
@@ -13,7 +22,7 @@ export async function useSessionCreate(loading: Ref<boolean>) {
     const expires = new Date(Date.now() + expiredMil)
 
     Cookies.set('token', token, { expires })
-    Router.push({ name: 'home' })
+    // Router.push({ name: 'home' })
 
     // # Mode 2
     // localStorage.setItem('token', token)
@@ -31,5 +40,5 @@ export function useSessionClose() {
   // # Mode 2
   // localStorage.removeItem('token')
 
-  Router.push({ name: 'session' })
+  // Router.push({ name: 'session' })
 }
