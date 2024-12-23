@@ -1,7 +1,7 @@
 // fetch.js
 import api from '@/axiosInstance'
 import type { PostT } from '@/types/post.type'
-import { ref, type Ref } from 'vue'
+import { ref, toValue, watchEffect, type Ref } from 'vue'
 
 export async function usePostCreate(post: Omit<PostT, 'id'>, loading: Ref<boolean>) {
   try {
@@ -39,24 +39,26 @@ export async function usePostDelete(id: number, loading: Ref<boolean>) {
   }
 }
 
-export function usePostList() {
+export function usePostList(url: Ref<string>) {
   const data = ref<PostT[]>([])
-  const error = ref()
   const loading = ref(true)
+  const error = ref(null)
 
-  api
-    .get<PostT[]>('post')
-    .then((response) => (data.value = response ? response.data : []))
-    .catch(() => {
-      // Alert message errors
-    })
-    .finally(() => {
-      loading.value = false
-    })
+  const fetchData = () => {
+    // reset state before fetching..
+    data.value = []
+    error.value = null
 
-  return {
-    data,
-    error,
-    loading
+    api
+      .get(toValue(url))
+      .then((res) => (data.value = res ? res.data : []))
+      .catch((err) => (error.value = err))
+      .finally(() => (loading.value = false))
   }
+
+  watchEffect(() => {
+    fetchData()
+  })
+
+  return { data, error }
 }

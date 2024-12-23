@@ -18,15 +18,25 @@ const modal = ref(false)
 const loadingCard = ref(false)
 const filterText = ref('')
 
-const { data: posts } = usePostList()
+const url = ref('post')
+const { data: posts } = usePostList(url)
 
-const onFormAdd = (post: PostT) => posts.value.push(post)
+const onFormAdd = (post: PostT) => {
+  // Llama de nuevo, esto es porque supabase no devuelve los datos
+  url.value = 'post/'
+}
 const onFormUpdated = (_post: PostT) => {
   const foundPost = posts.value.find((post) => post.id === _post.id)
   if (foundPost) {
     foundPost.title = _post.title
     foundPost.content = _post.content
   }
+}
+const onDelete = async (id: number) => {
+  usePostDelete(id, loadingCard).then(() => {
+    const index = posts.value.findIndex((post) => post.id == id)
+    if (index > -1) posts.value.splice(index, 1)
+  })
 }
 
 const filterTable = computed(() => {
@@ -51,12 +61,6 @@ const onClickUEdit = (post: PostT) => {
   FormPost.value.setEdit(post)
 }
 
-const onDelete = async (id: number) => {
-  usePostDelete(id, loadingCard).then(() => {
-    const index = posts.value.findIndex((post) => post.id == id)
-    if (index > -1) posts.value.splice(index, 1)
-  })
-}
 const onSetNew = () => {
   FormPost.value.setNew()
   modal.value = true
