@@ -13,11 +13,13 @@ export async function useSessionCreate(loading: Ref<boolean>) {
     const expires = new Date(Date.now() + expiredMil)
 
     Cookies.set('token', token, { expires })
+    Router.push({ name: 'home' })
+
     // # Mode 2
     // localStorage.setItem('token', token)
     return true
   } catch (error) {
-    //
+    // Alert
   } finally {
     loading.value = false
   }

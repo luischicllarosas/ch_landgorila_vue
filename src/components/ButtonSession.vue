@@ -1,10 +1,11 @@
+<script setup lang="ts">
+const props = defineProps<{ label: string }>()
+</script>
 <template>
-  <a class="codepen-button">
-    <span> Inicia sesion </span>
-  </a>
+  <button class="codepen-button">
+    <span> {{ label }} </span>
+  </button>
 </template>
-
-<script setup lang="ts"></script>
 
 <style scoped>
 /* Button from Uiverse.io by SelfMadeSystem */
@@ -24,6 +25,9 @@
   text-align: center;
 }
 
+.codepen-button:disabled {
+  color: grey;
+}
 .codepen-button::before {
   content: '';
   position: absolute;

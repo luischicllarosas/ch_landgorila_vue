@@ -5,14 +5,10 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_URL_ENDPOINT
 })
 
-const token = localStorage.getItem('access_token') || null
-
-// api.defaults.headers.common['Authorization'] = token
 axios.defaults.withCredentials = true
 
 api.interceptors.request.use(
   function (config) {
-    // const token = localStorage.getItem('token') || null
     const tokenCookie = Cookies.get('token')
 
     if (tokenCookie) config.headers.Authorization = tokenCookie

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import FormModalPost from '@/components/post/FormModalPost.vue'
 import ItemPost from '@/components/post/ItemPost.vue'
 import { usePostDelete, usePostList } from '@/composables/post.api'
@@ -14,6 +14,7 @@ const FormPost = templateRef<{
 
 const modal = ref(false)
 const loadingCard = ref(false)
+const filterText = ref('')
 
 const { data: posts } = usePostList()
 
@@ -25,6 +26,18 @@ const onFormUpdated = (_post: PostT) => {
     foundPost.content = _post.content
   }
 }
+
+const filterTable = computed(() => {
+  if (filterText.value.length) {
+    const text = filterText.value.toLowerCase()
+    const foundPost = posts.value.filter((el) => {
+      return el.title.toLowerCase().indexOf(text) > -1 || (el.content?.length && el.content.toLowerCase().indexOf(text) > -1)
+    })
+    return foundPost
+  } else {
+    return posts.value
+  }
+})
 
 //
 const onClickUEdit = (post: PostT) => {
@@ -51,13 +64,18 @@ const onSetNew = () => {
       <button @click="useSessionClose" class="button is-white">Cerrar sesion</button>
     </div>
 
+    <div class="pt-5">
+      <label for="">Buscar posts</label>
+      <input v-model="filterText" class="input is-primary" type="text" placeholder="Buscador simple por titulo o contenido" />
+    </div>
+
     <FormModalPost ref="form_post" v-model:open="modal" @added="onFormAdd" @updated="onFormUpdated" />
 
     <div v-if="!posts.length">No hay items encontrados</div>
     <template v-else>
       <div class="is-flex py-5 my-5 is-gap-5">
         <ItemPost
-          v-for="(post, index) in posts"
+          v-for="(post, index) in filterTable"
           :key="index"
           :post="post"
           @delete="onDelete"
